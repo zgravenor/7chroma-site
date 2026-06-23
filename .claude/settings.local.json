@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(xargs ls -lt)",
+      "Bash(find ~/Downloads ~/Desktop ~/Pictures ~/Documents -newer /Users/zachgravenor/7chroma-site/images/hero.jpg \\\\\\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" \\\\\\) 2>/dev/null | head -20)",
+      "Bash(find ~/Downloads ~/Desktop ~/Pictures ~/Documents -iname \"*landing*\" 2>/dev/null; echo \"---\"; ls -lt ~/Downloads | head -5)",
+      "Bash(cp \"/Users/zachgravenor/Downloads/Landing page .jpg\" /Users/zachgravenor/7chroma-site/images/landing.jpg && ls -la /Users/zachgravenor/7chroma-site/images/)",
+      "Bash(/usr/local/bin/node -v)",
+      "Bash(/opt/homebrew/bin/node -v)",
+      "Bash(ipconfig getifaddr *)",
+      "Bash(lsof -nP -iTCP:52015 -sTCP:LISTEN)",
+      "Bash(awk '{print $1, $9}')",
+      "Bash(npx --version)",
+      "Bash(ls -la ~/.vercel ~/\"Library/Application Support/com.vercel.cli\" 2>/dev/null; echo \"---whoami---\"; cd ~/7chroma-site && npx vercel whoami 2>&1 | tail -5)",
+      "Bash(curl -s https://7chroma-site.vercel.app)"
     ]
   }
 }
