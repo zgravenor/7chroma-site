@@ -13,7 +13,18 @@
       "Bash(awk '{print $1, $9}')",
       "Bash(npx --version)",
       "Bash(ls -la ~/.vercel ~/\"Library/Application Support/com.vercel.cli\" 2>/dev/null; echo \"---whoami---\"; cd ~/7chroma-site && npx vercel whoami 2>&1 | tail -5)",
-      "Bash(curl -s https://7chroma-site.vercel.app)"
+      "Bash(curl -s https://7chroma-site.vercel.app)",
+      "Bash(dig +short @8.8.8.8 www.7chroma.com)",
+      "Bash(curl -sI --resolve 7chroma.com:443:76.76.21.21 https://7chroma.com)",
+      "Bash(curl -s --resolve 7chroma.com:443:76.76.21.21 https://7chroma.com)",
+      "Bash(curl -sI https://www.7chroma.com)",
+      "Bash(curl -s https://www.7chroma.com)",
+      "Bash(grep -iA3 \"verif\\\\|cert\\\\|misconfig\\\\|warning\")",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec\")",
+      "Bash(curl -sI \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec\")",
+      "Bash(curl -s -L --post301 --post302 --post303 -X POST \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec\" -d \"type=test&value=conn-check-$\\(date +%s\\)\")",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=GET-TEST&value=verify-$\\(date +%H%M%S\\)\")",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=LOCATE&value=where-$\\(date +%H%M%S\\)\")"
     ]
   }
 }

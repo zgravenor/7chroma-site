@@ -270,16 +270,39 @@
     </div>
 
     <script>
+        // Paste your Google Apps Script Web App URL between the quotes:
+        const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec';
+
+        function sendToSheet(type, value) {
+            if (SHEET_ENDPOINT.indexOf('http') !== 0) return; // not configured yet
+            return fetch(SHEET_ENDPOINT, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ type: type, value: value })
+            });
+        }
+
+        function showConfirmation(form, msg) {
+            form.innerHTML = '<p style="color:#D4A5D4;font-size:0.9rem;letter-spacing:1px;' +
+                'text-transform:uppercase;font-weight:600;padding:14px 0;">' + msg + '</p>';
+        }
+
         document.getElementById('smsForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const phone = document.getElementById('phoneNumber').value;
-            console.log('SMS submitted:', phone);
+            const phone = document.getElementById('phoneNumber').value.trim();
+            if (!phone) return;
+            const code = document.querySelector('#smsForm .country-code').textContent.trim();
+            sendToSheet('sms', code + ' ' + phone);
+            showConfirmation(e.target, "You're on the list ✓");
         });
 
         document.getElementById('emailForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            console.log('Email submitted:', email);
+            const email = document.getElementById('email').value.trim();
+            if (!email) return;
+            sendToSheet('email', email);
+            showConfirmation(e.target, "You're on the list ✓");
         });
     </script>
 </body>
