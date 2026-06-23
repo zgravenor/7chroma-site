@@ -24,7 +24,10 @@
       "Bash(curl -sI \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec\")",
       "Bash(curl -s -L --post301 --post302 --post303 -X POST \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec\" -d \"type=test&value=conn-check-$\\(date +%s\\)\")",
       "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=GET-TEST&value=verify-$\\(date +%H%M%S\\)\")",
-      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=LOCATE&value=where-$\\(date +%H%M%S\\)\")"
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=LOCATE&value=where-$\\(date +%H%M%S\\)\")",
+      "Bash(curl -sI https://7chroma.com)",
+      "Bash(curl -s https://7chroma.com)",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbz31tUY2ozt_h6BZvQY705CyjKRq7S3RpXzk9MBlmDjDH-E75lB7eAFV1THwlqSdWTIoA/exec?type=HACK&value=should-not-write\")"
     ]
   }
 }

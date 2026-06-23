@@ -64,6 +64,17 @@
             display: block;
         }
 
+        .hero-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 22%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 100%);
+            pointer-events: none;
+        }
+
         .container {
             max-width: 700px;
             margin: 0 auto;
@@ -126,9 +137,9 @@
         }
 
         input:focus {
-            border-color: #00d9ff;
-            background: rgba(0,217,255,0.05);
-            box-shadow: 0 0 15px rgba(0,217,255,0.2);
+            border-color: #D4A5D4;
+            background: rgba(212,165,212,0.06);
+            box-shadow: 0 0 15px rgba(212,165,212,0.25);
         }
 
         button {
@@ -191,9 +202,9 @@
         }
 
         .social-link:hover {
-            border-color: #00d9ff;
-            color: #00d9ff;
-            box-shadow: 0 0 10px rgba(0,217,255,0.3);
+            border-color: #D4A5D4;
+            color: #D4A5D4;
+            box-shadow: 0 0 10px rgba(212,165,212,0.35);
         }
 
         .footer-text {
@@ -288,20 +299,39 @@
                 'text-transform:uppercase;font-weight:600;padding:14px 0;">' + msg + '</p>';
         }
 
+        function alreadyJoined(type) {
+            try { return localStorage.getItem('7chroma_' + type) === '1'; } catch (e) { return false; }
+        }
+        function markJoined(type) {
+            try { localStorage.setItem('7chroma_' + type, '1'); } catch (e) {}
+        }
+
+        // On load, if this browser already joined, show the confirmation instead of the form.
+        ['sms', 'email'].forEach((type) => {
+            if (alreadyJoined(type)) {
+                const form = document.getElementById(type + 'Form');
+                if (form) showConfirmation(form, "You're already on the list ✓");
+            }
+        });
+
         document.getElementById('smsForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (alreadyJoined('sms')) { showConfirmation(e.target, "You're already on the list ✓"); return; }
             const phone = document.getElementById('phoneNumber').value.trim();
             if (!phone) return;
             const code = document.querySelector('#smsForm .country-code').textContent.trim();
             sendToSheet('sms', code + ' ' + phone);
+            markJoined('sms');
             showConfirmation(e.target, "You're on the list ✓");
         });
 
         document.getElementById('emailForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (alreadyJoined('email')) { showConfirmation(e.target, "You're already on the list ✓"); return; }
             const email = document.getElementById('email').value.trim();
             if (!email) return;
             sendToSheet('email', email);
+            markJoined('email');
             showConfirmation(e.target, "You're on the list ✓");
         });
     </script>
