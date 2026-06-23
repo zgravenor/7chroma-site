@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7CHROMA — Coming Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables ── */
+    :root {
+      --bg:      #000;
+      --bg-up:   #0a0a0a;
+      --bg-card: #0d0d0d;
+      --text:    #fff;
+      --muted:   #999;
+      --dim:     #555;
+      --border:  #333;
+      --bsub:    #1c1c1c;
+      --t:       0.3s;
+      --ease:    cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* ── Grain overlay ── */
+    /* Chromatic grain — two offset layers, screen blend, hue-shifted */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: screen;
+      opacity: 0.07;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' seed='2'/%3E%3CfeColorMatrix type='saturate' values='14'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 100px 100px;
+      background-repeat: repeat;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      mix-blend-mode: screen;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' seed='17'/%3E%3CfeColorMatrix type='saturate' values='12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 100px 100px;
+      background-repeat: repeat;
+      transform: translate(1.5px, -1px);
+      filter: hue-rotate(180deg);
+    }
+    img { display:block; max-width:100%; }
+    button { font-family: inherit; cursor: pointer; }
+    input, select { font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Layers ── */
+    .layer { display:none; flex-direction:column; min-height:100vh; }
+    .layer.active { display:flex; }
+    @keyframes layerIn {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .layer.active { animation: layerIn 0.45s var(--ease); }
+
+    /* ── Shared ── */
+    .label-xs {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .divider { border:none; border-top:1px solid var(--border); }
+
+    .btn-solid {
+      width: 100%;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 16px;
+      cursor: pointer;
+      transition: filter var(--t) var(--ease), transform 0.1s;
+      color: #000;
+    }
+    .btn-solid:active { transform: scale(0.98); }
+
+    /* SEND SMS — pale lilac */
+    #sms-form .btn-solid {
+      background: #ddd0ff;
+    }
+    #sms-form .btn-solid:hover { filter: brightness(0.93); }
+
+    /* JOIN LIST — pale sage */
+    #email-form .btn-solid {
+      background: #c8f0d8;
+    }
+    #email-form .btn-solid:hover { filter: brightness(0.93); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: all var(--t) var(--ease);
+    }
+    .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+    /* Social row (shared) */
+    .social-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .soc-link {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex; align-items:center; justify-content:center;
+      color: var(--text);
+      opacity: 0.65;
+      transition: opacity var(--t), border-color var(--t);
+      flex-shrink: 0;
+    }
+    .soc-link:hover { opacity: 1; border-color: var(--text); }
+    .soc-link svg { width:15px; height:15px; }
+
+    .copyright {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ────────────────────────────────────────────
+       LAYER 1 — LANDING
+    ──────────────────────────────────────────── */
+
+    /* Hero with logo overlaid */
+    #l1-hero {
+      position: relative;
+      width: 100%;
+    }
+    .hero-box {
+      width: 100%;
+      max-height: 600px;
+      overflow: hidden;
+    }
+    .hero-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    #l1-header {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    @keyframes logoFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes logoGlow {
+      0%   { opacity: 1;    filter: drop-shadow(0 0 0px rgba(255, 0, 128, 0)); }
+      50%  { opacity: 0.95; filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.3)); }
+      100% { opacity: 1;    filter: drop-shadow(0 0 0px rgba(255, 0, 128, 0)); }
+    }
+    .logo-main {
+      width: 280px; height: auto;
+      mix-blend-mode: screen;
+      animation:
+        logoFadeIn 0.8s ease-out both,
+        logoGlow   4s  ease-in-out 0.8s infinite;
+    }
+
+    /* Headline */
+    #l1-headline {
+      padding: 16px 24px 44px;
+      text-align: center;
+    }
+    .hl-main {
+      font-family: 'Barlow Condensed', Impact, sans-serif;
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hl-sub {
+      font-size: clamp(14px, 2.5vw, 16px);
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.75;
+    }
+
+    /* Capture sections (stacked) */
+    .cap-section { padding: 0 24px 20px; }
+    .cap-col {
+      max-width: 880px;
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      background: var(--bg-up);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      z-index: 10000;
+    }
+
+    /* Phone row */
+    .phone-row { display:flex; }
+    .country-sel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-right: none;
+      color: var(--text);
+      font-size: 13px;
+      padding: 14px 10px;
+      outline: none;
+      min-width: 82px;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color var(--t);
+    }
+    .country-sel:focus { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.18); }
+
+    .ph-input {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color var(--t);
+    }
+    .ph-input::placeholder { color: #666; }
+    .ph-input:focus { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.18); }
+
+    /* Email row */
+    .email-row { position:relative; }
+    .email-icon {
+      position:absolute; left:14px; top:50%; transform:translateY(-50%);
+      color:var(--dim); pointer-events:none; display:flex;
+    }
+    .email-icon svg { width:15px; height:15px; }
+    .em-input {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      padding: 14px 16px 14px 44px;
+      outline: none;
+      transition: border-color var(--t);
+    }
+    .em-input::placeholder { color: #666; }
+    .em-input:focus { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.18); }
+
+    .helper { font-size: 11px; color: var(--dim); line-height: 1.6; }
+
+    .form-ok {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .form-ok.show { display: flex; }
+    .form-ok span {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .ph-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* Password */
+    #l1-pw {
+      padding: 0 24px 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .pw-field {
+      width: 100%;
+      max-width: 340px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--bsub);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 10px 0;
+      outline: none;
+      transition: border-color var(--t), color var(--t);
+    }
+    .pw-field::placeholder { color: #666; }
+    .pw-field:focus { border-color: #fff; color: var(--text); box-shadow: 0 0 8px rgba(255,255,255,0.15); }
+    .pw-field.err { border-color: #ff1744; animation: pwshake 0.32s ease; }
+    @keyframes pwshake {
+      0%,100% { transform:translateX(0); }
+      25%      { transform:translateX(-7px); }
+      75%      { transform:translateX(7px); }
+    }
+    .pw-err {
+      font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+      color: #ff1744; opacity:0; transition:opacity 0.2s; height:13px;
+    }
+    .pw-err.show { opacity:1; }
+
+    /* L1 Footer */
+    #l1-footer {
+      margin-top: auto;
+      padding: 36px 24px 48px;
+      border-top: 1px solid var(--bsub);
+      display: flex; flex-direction:column; align-items:center; gap:18px;
+    }
+
+    /* ────────────────────────────────────────────
+       LAYER 2 — PRODUCT
+    ──────────────────────────────────────────── */
+
+    /* Header */
+    #l2-header {
+      padding: 32px 24px 20px;
+      display: flex; align-items:center; justify-content:center;
+      border-bottom: 1px solid var(--bsub);
+      position: sticky; top:0;
+      background: var(--bg);
+      z-index: 50;
+      position: relative;
+    }
+    .logo-sm { width: 180px; height:auto; }
+    .x-btn {
+      width:40px; height:40px;
+      background:none;
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:16px; line-height:1;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      transition: all var(--t);
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .x-btn:hover { border-color:var(--text); color:var(--text); }
+
+    /* Product section */
+    #l2-product { padding: 48px 24px 60px; }
+    .prod-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+    @media (min-width: 860px) {
+      .prod-grid { grid-template-columns: 1fr 1fr; gap: 64px; }
+    }
+
+    /* Images col */
+    .main-img-box {
+      width:100%; aspect-ratio:1/1;
+      background:var(--bg-up);
+      border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .thumb-row {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;
+    }
+    .thumb {
+      aspect-ratio:1/1;
+      background:var(--bg-up);
+      border:1px solid var(--bsub);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      transition:border-color var(--t);
+    }
+    .thumb:hover { border-color:var(--border); }
+    .thumb span { font-size:7px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+
+    /* Details col */
+    .prod-details { display:flex; flex-direction:column; gap:22px; }
+
+    .prod-num { font-size:11px; letter-spacing:4px; color:var(--muted); text-transform:uppercase; }
+    .prod-title {
+      font-family:'Barlow Condensed', Impact, sans-serif;
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight:700; letter-spacing:0.04em;
+      text-transform:uppercase; line-height:1.1;
+    }
+    .prod-price { font-size:17px; color:var(--muted); }
+
+    /* Color */
+    .sel-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+    .color-row { display:flex; gap:10px; }
+    .swatch {
+      width:30px; height:30px; border-radius:50%;
+      border:1px solid var(--border);
+      cursor:pointer;
+      transition:transform 0.15s, box-shadow 0.2s;
+    }
+    .swatch:hover { transform:scale(1.1); }
+    .swatch.on { box-shadow:0 0 0 2px var(--bg), 0 0 0 3.5px var(--text); border-color:transparent; }
+
+    /* Sizes */
+    .size-head { display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
+    .size-guide { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); text-decoration:underline; cursor:pointer; }
+    .size-guide:hover { color:var(--muted); }
+
+    .size-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+    .sz-btn {
+      height:42px;
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--text);
+      font-size:11px; font-weight:600; letter-spacing:1px;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all var(--t);
+    }
+    .sz-btn:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.4); }
+    .sz-btn.on { background:var(--text); color:#000; border-color:var(--text); }
+
+    /* Desc / features */
+    .desc { font-size:15px; color:var(--text); line-height:1.75; }
+    .feat-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .feat-list li {
+      font-size:13px; color:var(--text);
+      padding-left:18px; position:relative;
+    }
+    .feat-list li::before { content:'—'; position:absolute; left:0; color:var(--muted); }
+
+    /* CTA */
+    .cta-btn {
+      width:100%; height:52px;
+      background:#ffd0d8; color:#000; border:none;
+      font-size:12px; font-weight:700; letter-spacing:3px;
+      text-transform:uppercase; cursor:default;
+    }
+
+    /* Benefits */
+    .bene-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    }
+    @media (min-width:680px) { .bene-grid { grid-template-columns:repeat(4,1fr); } }
+    .bene-box {
+      border:1px solid var(--border);
+      padding:20px 10px;
+      display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+    }
+    .bene-box svg { width:22px; height:22px; color:var(--muted); }
+    .bene-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); line-height:1.5; }
+
+    /* Specs */
+    .specs-intro { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:18px; }
+    .specs-tbl { width:100%; border-collapse:collapse; }
+    .specs-tbl tr { border-bottom:1px solid var(--bsub); }
+    .specs-tbl td { padding:9px 0; font-size:12px; font-family:'Courier New',monospace; }
+    .specs-tbl td:first-child { color:var(--muted); width:42%; text-transform:uppercase; letter-spacing:1px; }
+    .specs-tbl td:last-child  { color:var(--text); }
+
+    /* L2 footer */
+    #l2-footer {
+      margin-top:auto;
+      padding:36px 24px 48px;
+      border-top:1px solid var(--bsub);
+      display:flex; flex-direction:column; align-items:center; gap:18px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width:3px; }
+    ::-webkit-scrollbar-track { background:#000; }
+    ::-webkit-scrollbar-thumb { background:#222; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYER 1 — LANDING
+══════════════════════════════════════════════════════════ -->
+<div id="layer1" class="layer active">
+
+  <section id="l1-hero">
+    <div class="hero-box">
+      <img src="images/hero.jpg" alt="7CHROMA">
+    </div>
+    <header id="l1-header">
+      <img src="images/logo.png" class="logo-main" alt="7CHROMA logo">
+    </header>
+  </section>
+
+  <!-- SMS -->
+  <div class="cap-section">
+    <div class="cap-col">
+      <span class="label-xs">For Earlier Access</span>
+      <form id="sms-form" novalidate>
+        <div class="phone-row">
+          <select class="country-sel" aria-label="Country code">
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+61">🇦🇺 +61</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+81">🇯🇵 +81</option>
+          </select>
+          <input id="sms-inp" class="ph-input" type="tel" placeholder="Enter your mobile number" aria-label="Mobile number">
+        </div>
+        <button type="submit" class="btn-solid" style="margin-top:10px;">SEND SMS</button>
+      </form>
+      <div id="sms-ok" class="form-ok">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6.3" stroke="#777"/>
+          <path d="M4 7l2 2 4-4" stroke="#777" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>You're on the list</span>
+      </div>
+      <p class="helper">Access drop 30 minutes before with password SMS to your device.</p>
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div class="cap-section" style="padding-bottom:52px;">
+    <div class="cap-col">
+      <span class="label-xs">For Updates &amp; Launch News</span>
+      <form id="email-form" novalidate>
+        <div class="email-row">
+          <span class="email-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="M2 7l10 7 10-7"/>
+            </svg>
+          </span>
+          <input id="email-inp" class="em-input" type="email" placeholder="Enter your email address" aria-label="Email address">
+        </div>
+        <button type="submit" class="btn-solid" style="margin-top:10px;">JOIN LIST</button>
+      </form>
+      <div id="email-ok" class="form-ok">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6.3" stroke="#777"/>
+          <path d="M4 7l2 2 4-4" stroke="#777" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>You're on the list</span>
+      </div>
+      <p class="helper">Be the first to know about drops, new releases and exclusive content.</p>
+    </div>
+  </div>
+
+  <div id="l1-pw">
+    <input id="pw-inp" class="pw-field" type="password"
+      placeholder="Enter Password" autocomplete="off" aria-label="Password">
+    <span id="pw-err" class="pw-err">Incorrect password</span>
+  </div>
+
+  <footer id="l1-footer">
+    <div class="social-row">
+      <a href="https://instagram.com" class="soc-link" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://tiktok.com" class="soc-link" target="_blank" rel="noopener" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.77 0 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 000 12.68 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.77a4.85 4.85 0 01-1.02-.08z"/>
+        </svg>
+      </a>
+      <a href="https://youtube.com" class="soc-link" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/>
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://twitter.com" class="soc-link" target="_blank" rel="noopener" aria-label="Twitter / X">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </a>
+      <a href="mailto:hello@7chroma.shop" class="soc-link" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M2 7l10 7 10-7"/>
+        </svg>
+      </a>
+    </div>
+    <p class="copyright">© 2024 7CHROMA. All rights reserved.</p>
+  </footer>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYER 2 — PRODUCT
+══════════════════════════════════════════════════════════ -->
+<div id="layer2" class="layer">
+
+  <header id="l2-header">
+    <img src="images/logo.png" class="logo-sm" alt="7CHROMA">
+    <button class="x-btn" id="close-btn" aria-label="Close">✕</button>
+  </header>
+
+  <section id="l2-product">
+    <div class="prod-grid">
+
+      <!-- Left: Images -->
+      <div>
+        <div class="main-img-box">
+          <span class="ph-label">Product Image</span>
+        </div>
+        <div class="thumb-row">
+          <div class="thumb"><span>IMAGE 1</span></div>
+          <div class="thumb"><span>IMAGE 2</span></div>
+          <div class="thumb"><span>IMAGE 3</span></div>
+          <div class="thumb"><span>IMAGE 4</span></div>
+        </div>
+      </div>
+
+      <!-- Right: Details -->
+      <div class="prod-details">
+
+        <div>
+          <p class="prod-num">001</p>
+          <h2 class="prod-title">7CHROMA Edition 01</h2>
+          <p class="prod-price">Coming soon</p>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Color -->
+        <div>
+          <p class="sel-label">Color: <span id="sel-color">Void Black</span></p>
+          <div class="color-row">
+            <div class="swatch on"  style="background:#1a1a1a;" data-color="Void Black"  title="Void Black"></div>
+            <div class="swatch"     style="background:#162236;" data-color="Deep Navy"   title="Deep Navy"></div>
+            <div class="swatch"     style="background:#3a1010;" data-color="Carbon Red"  title="Carbon Red"></div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Size -->
+        <div>
+          <div class="size-head">
+            <p class="sel-label">Size: <span id="sel-size">Select</span></p>
+            <span class="size-guide">Size Guide</span>
+          </div>
+          <div class="size-grid">
+            <button class="sz-btn" data-size="XS">XS</button>
+            <button class="sz-btn" data-size="S">S</button>
+            <button class="sz-btn" data-size="M">M</button>
+            <button class="sz-btn" data-size="L">L</button>
+            <button class="sz-btn" data-size="XL">XL</button>
+            <button class="sz-btn" data-size="XXL">XXL</button>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Description -->
+        <div>
+          <p class="sel-label" style="margin-bottom:10px;">Description</p>
+          <p class="desc">Crafted for those who move in darkness. Limited. Intentional. Yours.</p>
+        </div>
+
+        <!-- Features -->
+        <ul class="feat-list">
+          <li>60/35/5 cotton/modal/elastane blend</li>
+          <li>Flatlock seams for comfort</li>
+          <li>Minimal aesthetic design</li>
+          <li>Training-focused fit</li>
+        </ul>
+
+        <hr class="divider">
+
+        <!-- CTA -->
+        <button class="cta-btn" disabled>COMING SOON</button>
+
+        <!-- Benefits -->
+        <div class="bene-grid">
+          <div class="bene-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
+            </svg>
+            <span class="bene-label">Moisture<br>Wicking</span>
+          </div>
+          <div class="bene-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="12" y1="2" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M5 9l-3 3 3 3M19 9l3 3-3 3M9 5l3-3 3 3M9 19l3 3 3-3"/>
+            </svg>
+            <span class="bene-label">4-Way<br>Stretch</span>
+          </div>
+          <div class="bene-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/>
+              <line x1="16" y1="8" x2="2" y2="22"/>
+            </svg>
+            <span class="bene-label">Light-<br>weight</span>
+          </div>
+          <div class="bene-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/>
+            </svg>
+            <span class="bene-label">Breath-<br>able</span>
+          </div>
+        </div>
+
+        <!-- Specs -->
+        <div>
+          <p class="sel-label" style="margin-bottom:10px;">Details</p>
+          <p class="specs-intro">More information about the product goes here. Materials, fit, performance, and anything else the customer should know.</p>
+          <table class="specs-tbl">
+            <tr><td>Material</td><td>60/35/5 Cotton/Modal/Elastane</td></tr>
+            <tr><td>Fit</td><td>Training fit</td></tr>
+            <tr><td>Weight</td><td>Lightweight</td></tr>
+            <tr><td>Care</td><td>Machine wash cold</td></tr>
+            <tr><td>Made in</td><td>Global production</td></tr>
+          </table>
+        </div>
+
+      </div><!-- /prod-details -->
+    </div><!-- /prod-grid -->
+  </section>
+
+  <footer id="l2-footer">
+    <div class="social-row">
+      <a href="https://instagram.com" class="soc-link" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://tiktok.com" class="soc-link" target="_blank" rel="noopener" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.77 0 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 000 12.68 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.77a4.85 4.85 0 01-1.02-.08z"/>
+        </svg>
+      </a>
+      <a href="https://youtube.com" class="soc-link" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/>
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://twitter.com" class="soc-link" target="_blank" rel="noopener" aria-label="Twitter / X">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </a>
+      <a href="mailto:hello@7chroma.shop" class="soc-link" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M2 7l10 7 10-7"/>
+        </svg>
+      </a>
+    </div>
+    <p class="copyright">© 2024 7CHROMA. All rights reserved.</p>
+    <button class="btn-ghost" id="back-btn">← Back to landing</button>
+  </footer>
+
+</div>
+
+
+<script>
+  var PASS = 'PATIENCE';
+
+  var l1      = document.getElementById('layer1');
+  var l2      = document.getElementById('layer2');
+  var pwInp   = document.getElementById('pw-inp');
+  var pwErr   = document.getElementById('pw-err');
+  var smsForm = document.getElementById('sms-form');
+  var smsInp  = document.getElementById('sms-inp');
+  var smsOk   = document.getElementById('sms-ok');
+  var emForm  = document.getElementById('email-form');
+  var emInp   = document.getElementById('email-inp');
+  var emOk    = document.getElementById('email-ok');
+  var closeBtn = document.getElementById('close-btn');
+  var backBtn  = document.getElementById('back-btn');
+
+  function showLayer(n) {
+    var from = n === 2 ? l1 : l2;
+    var to   = n === 2 ? l2 : l1;
+    from.classList.remove('active');
+    to.classList.remove('active');
+    void to.offsetWidth;
+    to.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  /* Password */
+  pwInp.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    if (pwInp.value.trim().toUpperCase() === PASS) {
+      showLayer(2);
+      pwInp.value = '';
+      pwErr.classList.remove('show');
+      pwInp.classList.remove('err');
+    } else {
+      pwInp.classList.remove('err');
+      void pwInp.offsetWidth;
+      pwInp.classList.add('err');
+      pwErr.classList.add('show');
+      setTimeout(function() {
+        pwInp.classList.remove('err');
+        pwErr.classList.remove('show');
+        pwInp.value = '';
+      }, 1400);
+    }
+  });
+  pwInp.addEventListener('input', function() {
+    pwInp.classList.remove('err');
+    pwErr.classList.remove('show');
+  });
+
+  /* SMS */
+  smsForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!smsInp.value.trim()) return;
+    smsForm.style.display = 'none';
+    smsOk.classList.add('show');
+  });
+
+  /* Email */
+  emForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!emInp.value.trim()) return;
+    emForm.style.display = 'none';
+    emOk.classList.add('show');
+  });
+
+  /* Close / back */
+  closeBtn.addEventListener('click', function() { showLayer(1); });
+  backBtn.addEventListener('click',  function() { showLayer(1); });
+
+  /* Size selection */
+  document.querySelectorAll('.sz-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.sz-btn').forEach(function(b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      document.getElementById('sel-size').textContent = btn.dataset.size;
+    });
+  });
+
+  /* Color selection */
+  document.querySelectorAll('.swatch').forEach(function(s) {
+    s.addEventListener('click', function() {
+      document.querySelectorAll('.swatch').forEach(function(x) { x.classList.remove('on'); });
+      s.classList.add('on');
+      document.getElementById('sel-color').textContent = s.dataset.color;
+    });
+  });
+</script>
+
+</body>
+</html>
